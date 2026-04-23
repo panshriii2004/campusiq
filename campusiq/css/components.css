@@ -91,3 +91,18 @@
   .login-card { padding:28px 20px; }
   .tabs { overflow-x:auto; }
 }
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(0, 212, 255, 0.3); /* Subtle blue border to match theme */
+    color: #00d4ff;
+    margin-top: 10px;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background: rgba(0, 212, 255, 0.1);
+    border-color: #00d4ff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 212, 255, 0.2);
+}

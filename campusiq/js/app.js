@@ -7,7 +7,7 @@
 // Change this in js/app.js
 const API_URL = window.location.hostname === "localhost" 
     ? "http://localhost:3000/api" 
-    : "https://your-live-backend-url.com/api";
+    : "https://your-backend-service.onrender.com/api"; // ✅ Your live backend URL
 let currentRole = 'student';      
 let registrationRole = 'student'; 
 window.currentUser = null;

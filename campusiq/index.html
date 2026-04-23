@@ -27,6 +27,7 @@
       
       <div class="tabs mb-24" style="width: 100%;">
         <button class="tab-btn active" id="btnShowLogin" onclick="toggleAuthMode('login')">Sign In</button>
+        
         <button class="tab-btn" id="btnShowSignup" onclick="toggleAuthMode('signup')">Create Account</button>
       </div>
 
@@ -50,6 +51,15 @@
         </div>
         <button type="submit" class="btn btn-primary btn-full">Sign In → Enter Portal</button>
       </form>
+
+    
+
+  <button type="button" class="btn btn-secondary btn-full" 
+          onclick="window.open('https://smart-attendance-app-phi.vercel.app/login', '_blank')"
+          style="margin-top: 12px;">
+      📝 Take Attendance
+  </button>
+</form>
 
       <form id="signupFields" class="hidden" onsubmit="event.preventDefault(); doRegister();">
         <h2 class="login-title">Join CampusIQ</h2>
