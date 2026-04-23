@@ -10,7 +10,11 @@ const PORT = 3000;
 let users = []; 
 
 // 1. Middleware
-app.use(cors()); // Allows cross-origin requests from port 5501
+app.use(cors({
+    origin: ["http://localhost:5501", "https://your-github-username.github.io"],
+    methods: ["GET", "POST"],
+    credentials: true
+})); // Allows cross-origin requests from port 5501
 app.use(express.json()); // Parses incoming JSON data
 
 // 2. Content Security Policy (CSP)

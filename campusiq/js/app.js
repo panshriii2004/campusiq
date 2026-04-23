@@ -4,7 +4,10 @@
    ══════════════════════════════════════════════ */
 
 /* ─── STATE & CONFIG ─── */
-const API_URL = "http://localhost:3000/api";
+// Change this in js/app.js
+const API_URL = window.location.hostname === "localhost" 
+    ? "http://localhost:3000/api" 
+    : "https://your-live-backend-url.com/api";
 let currentRole = 'student';      
 let registrationRole = 'student'; 
 window.currentUser = null;
