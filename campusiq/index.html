@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CampusIQ — Smart Campus Navigation System</title>
+  
+  <link rel="icon" href="data:,">
+  
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  
+  <script src="js/data.js" defer></script>
+  <script src="js/navigation.js" defer></script>
+  <script src="js/pages.js" defer></script>
+  <script src="js/chatbot.js" defer></script>
+  <script src="js/app.js" defer></script>
+</head>
+<body>
+
+  <div id="loginPage" class="login-page">
+    <div class="login-bg-glow"></div>
+    <div class="login-card fade-in">
+      <div class="login-logo">⬡ CampusIQ</div>
+      
+      <div class="tabs mb-24" style="width: 100%;">
+        <button class="tab-btn active" id="btnShowLogin" onclick="toggleAuthMode('login')">Sign In</button>
+        <button class="tab-btn" id="btnShowSignup" onclick="toggleAuthMode('signup')">Create Account</button>
+      </div>
+
+      <form id="loginFields" onsubmit="event.preventDefault(); doLogin();">
+        <h2 class="login-title">Welcome Back</h2>
+        <p class="login-sub">Smart Campus Navigation System</p>
+        
+        <div class="role-tabs" id="roleTabs">
+          <button type="button" class="role-tab active" onclick="selectRole('student',this)">🎓 Student</button>
+          <button type="button" class="role-tab" onclick="selectRole('faculty',this)">👨‍🏫 Faculty</button>
+          <button type="button" class="role-tab" onclick="selectRole('admin',this)">⚙️ Admin</button>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input class="form-input" id="loginEmail" type="email" required placeholder="your@campus.edu" autocomplete="username"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input class="form-input" id="loginPassword" type="password" required autocomplete="current-password" placeholder="••••••••"/>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">Sign In → Enter Portal</button>
+      </form>
+
+      <form id="signupFields" class="hidden" onsubmit="event.preventDefault(); doRegister();">
+        <h2 class="login-title">Join CampusIQ</h2>
+        <p class="login-sub">Register to access smart campus features</p>
+
+        <div class="form-group">
+          <label class="form-label">Register As</label>
+          <div class="role-tabs" id="regRoleTabs" style="margin-bottom: 0;">
+            <button class="role-tab active" type="button" onclick="selectRegRole('student', this)">🎓 Student</button>
+            <button class="role-tab" type="button" onclick="selectRegRole('faculty', this)">👨‍🏫 Professor</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input class="form-input" id="regName" type="text" required placeholder="e.g. Rahul Verma"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">University Email</label>
+          <input class="form-input" id="regEmail" type="email" required placeholder="name@campus.edu" autocomplete="username"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Department</label>
+          <select class="form-input" id="regDept">
+            <option value="Computer Science">Computer Science</option>
+            <option value="Electronics">Electronics</option>
+            <option value="Civil">Civil Engineering</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Create Password</label>
+          <input class="form-input" id="regPassword" type="password" required autocomplete="new-password" placeholder="Min. 8 characters"/>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">Create Account →</button>
+      </form>
+
+      <p class="login-hint">Demo: any email &amp; password · select your role above</p>
+    </div>
+  </div>
+
+  <div id="appShell" class="app hidden">
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-logo"><span class="logo-icon">⬡</span><span class="logo-text">CampusIQ</span></div>
+      <div class="nav-divider"></div>
+      <div id="navItems"></div>
+      <div class="nav-divider" style="margin-top:auto"></div>
+      <div id="userChip" class="user-chip"></div>
+      <button class="nav-btn danger" onclick="doLogout()"><span class="nav-icon">⏻</span><span class="nav-label">Logout</span></button>
+    </nav>
+
+    <main class="main-content" id="mainContent"></main>
+  </div>
+
+  <div id="modalOverlay" class="modal-overlay hidden" onclick="closeModal()">
+    <div class="modal" id="modalBox" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <span class="modal-title" id="modalTitle">Details</span>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+  <div id="toastContainer" class="toast-container"></div>
+
+</body>
+</html>

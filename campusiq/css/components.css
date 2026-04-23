@@ -1,0 +1,93 @@
+/* ══════════════════════════════════════════════
+   CampusIQ — Extra Component Styles
+   File: css/components.css
+   ══════════════════════════════════════════════ */
+
+/* ── FILTER CHIPS ─────────────────────────────── */
+.filter-row { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
+
+/* ── INFO ROW ─────────────────────────────────── */
+.info-row {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:11px 0; border-bottom:1px solid var(--border); font-size:13px;
+}
+.info-row:last-child { border-bottom:none; }
+.info-label { color:var(--text2); font-size:12px; font-weight:600; }
+.info-value { color:var(--text); text-align:right; max-width:62%; }
+
+/* ── COMPLIANCE CARD ──────────────────────────── */
+.compliance-status {
+  display:flex; align-items:center; gap:10px;
+  padding:14px; background:var(--surface2);
+  border:1px solid var(--border); border-radius:var(--radius-sm);
+  margin-bottom:12px;
+}
+
+/* ── EMPTY STATE ──────────────────────────────── */
+.empty-state {
+  padding:50px 20px; text-align:center;
+  color:var(--text2); font-size:14px;
+}
+.empty-icon { font-size:48px; margin-bottom:12px; }
+
+/* ── SECTION DIVIDER ──────────────────────────── */
+.section-divider {
+  display:flex; align-items:center; gap:12px;
+  font-size:11px; font-weight:700; text-transform:uppercase;
+  letter-spacing:.8px; color:var(--text3); margin:20px 0 14px;
+}
+.section-divider::before,
+.section-divider::after {
+  content:''; flex:1; height:1px; background:var(--border);
+}
+
+/* ── DETAILS LIST ─────────────────────────────── */
+.detail-list { display:flex; flex-direction:column; gap:0; }
+
+/* ── CHIP GROUP ───────────────────────────────── */
+.chip-group { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+.chip {
+  padding:3px 10px; background:var(--surface2);
+  border:1px solid var(--border); border-radius:20px;
+  font-size:11px; color:var(--text2);
+}
+
+/* ── CALLOUT ──────────────────────────────────── */
+.callout {
+  padding:14px 16px; border-radius:var(--radius-sm);
+  border-left:3px solid var(--accent); background:rgba(0,212,255,.06);
+  font-size:13px; color:var(--text2); margin-bottom:16px;
+}
+.callout.warn   { border-color:var(--warn);    background:rgba(245,158,11,.06); }
+.callout.success{ border-color:var(--accent3); background:rgba(16,185,129,.06); }
+.callout.danger { border-color:var(--danger);  background:rgba(239,68,68,.06); }
+
+/* ── HEADER ACTIONS ROW ───────────────────────── */
+.header-actions { display:flex; align-items:center; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
+.header-actions .search-bar { flex:1; min-width:200px; }
+
+/* ── PAGE LOADER ──────────────────────────────── */
+#pageLoader {
+  position:fixed; inset:0; background:var(--bg);
+  display:flex; align-items:center; justify-content:center;
+  z-index:9999; transition:opacity .4s;
+}
+#pageLoader .loader-logo {
+  font-family:'Syne',sans-serif; font-size:36px;
+  font-weight:800; color:var(--accent);
+  animation:pulseDot 1.5s infinite;
+}
+
+/* ── RESPONSIVE TWEAKS ────────────────────────── */
+@media(max-width:700px){
+  .chat-wrap { height:420px; }
+  .modal { padding:20px; }
+  .page { padding:16px; }
+  .stats-row { grid-template-columns:1fr 1fr; }
+}
+
+@media(max-width:480px){
+  .role-tabs { flex-direction:column; }
+  .login-card { padding:28px 20px; }
+  .tabs { overflow-x:auto; }
+}
