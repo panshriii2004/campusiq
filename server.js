@@ -116,6 +116,36 @@ app.post('/api/admin/create', async (req, res) => {
     res.status(500).json({ message: "Error creating admin account" }); 
   }
 });
+// --- ADMIN CRUD ROUTES ---
+
+// 1. ADD or UPDATE Detail (Faculty/Student/Resource)
+// UPDATE or CREATE Entry
+app.post('/api/admin/save-detail', async (req, res) => {
+  const { collection, id, data, masterKey } = req.body;
+  if (masterKey !== "GEC_RAIPUR_ADMIN_2026") return res.status(403).send("Forbidden");
+
+  try {
+    if (id) {
+      await db.collection(collection).doc(id).update(data);
+    } else {
+      await db.collection(collection).add(data);
+    }
+    res.json({ message: "Success" });
+  } catch (e) { res.status(500).send(e.message); }
+});
+
+// DELETE Entry
+app.post('/api/admin/delete-detail', async (req, res) => {
+  const { collection, id, masterKey } = req.body;
+  if (masterKey !== "GEC_RAIPUR_ADMIN_2026") return res.status(403).send("Forbidden");
+
+  try {
+    await db.collection(collection).doc(id).delete();
+    res.json({ message: "Deleted" });
+  } catch (e) { res.status(500).send(e.message); }
+});
+
+
 
 app.get('/favicon.ico', (req, res) => res.status(204).end());
 

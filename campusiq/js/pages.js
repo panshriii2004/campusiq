@@ -538,26 +538,28 @@ function adminOverview() {
 
 function adminFaculty() {
   return `
-  <div class="fade-in table-container">
-    <table class="data-table">
-      <thead><tr><th>ID</th><th>Name</th><th>Department</th><th>Cabin</th><th>Status</th><th>Actions</th></tr></thead>
-      <tbody>
-        ${FACULTY_DB.map(f => `
-          <tr>
-            <td><span class="badge badge-blue">${f.id}</span></td>
-            <td><strong>${f.name}</strong></td>
-            <td>${f.dept}</td>
-            <td>📍 ${f.cabin}</td>
-            <td>${availBadge(f.available)}</td>
-            <td>
-              <div class="flex gap-8">
-                <button class="btn btn-ghost btn-sm" onclick="showToast('Edit ${f.name}','info')">✏️</button>
-                <button class="btn btn-danger btn-sm" onclick="showToast('Removed','error')">🗑</button>
-              </div>
-            </td>
-          </tr>`).join('')}
-      </tbody>
-    </table>
+  <div class="fade-in">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+       <h3 style="margin:0;">Manage Faculty Members</h3>
+       <button class="btn btn-primary btn-sm" onclick="openFacultyEditor()">+ Add Faculty</button>
+    </div>
+    <div class="table-container">
+      <table class="data-table">
+        <thead><tr><th>Name</th><th>Dept</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="adminFacultyTableBody">
+          ${FACULTY_DB.map(f => `
+            <tr>
+              <td><strong>${f.name}</strong></td>
+              <td>${f.dept}</td>
+              <td>${f.available ? '✅ Available' : '🔴 Busy'}</td>
+              <td>
+                <button class="btn btn-ghost btn-sm" onclick="editFaculty('${f.id}')">✏️</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteEntry('faculty', '${f.id}')">🗑</button>
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
   </div>`;
 }
 
@@ -583,20 +585,28 @@ function adminStudents() {
 
 function adminResources() {
   return `
-  <div class="fade-in table-container">
-    <table class="data-table">
-      <thead><tr><th>ID</th><th>Name</th><th>Type</th><th>Capacity</th><th>Status</th></tr></thead>
-      <tbody>
-        ${RESOURCES_DB.map(r => `
-          <tr>
-            <td><span class="badge badge-blue">${r.id}</span></td>
-            <td>${r.icon} <strong>${r.name}</strong></td>
-            <td>${r.type}</td>
-            <td>${r.capacity}</td>
-            <td>${openBadge(r.available)}</td>
-          </tr>`).join('')}
-      </tbody>
-    </table>
+  <div class="fade-in">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+       <h3 style="margin:0;">Manage Campus Facilities</h3>
+       <button class="btn btn-primary btn-sm" onclick="openResourceEditor()">+ Add Resource</button>
+    </div>
+    <div class="table-container">
+      <table class="data-table">
+        <thead><tr><th>Resource Name</th><th>Building</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+          ${RESOURCES_DB.map(r => `
+            <tr>
+              <td>${r.icon} <strong>${r.name}</strong></td>
+              <td>${r.building}</td>
+              <td>${r.available ? '🟢 Open' : '🔴 Occupied'}</td>
+              <td>
+                <button class="btn btn-ghost btn-sm" onclick="editResource('${r.id}')">✏️</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteEntry('resources', '${r.id}')">🗑</button>
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
   </div>`;
 }
 

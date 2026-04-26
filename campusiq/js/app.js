@@ -160,6 +160,78 @@ async function createNewAdmin() {
         showToast("Server Connection Failed", "error");
     }
 }
+async function adminAction(action, payload) {
+  const masterKey = prompt("Please enter Master Secret Key to confirm this action:");
+  if (!masterKey) return;
+
+  const endpoint = action === 'delete' ? 'delete-detail' : 'save-detail';
+  
+  try {
+    const response = await fetch(`${API_URL}/admin/${endpoint}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...payload, masterKey })
+    });
+
+    if (response.ok) {
+      showToast("Action completed!", "success");
+      navigate('admin'); // Refresh the view
+    } else {
+      showToast("Action failed. Check Master Key.", "error");
+    }
+  } catch (err) { console.error(err); }
+}
+// 1. Generic Delete Function
+async function deleteEntry(collection, id) {
+  if (!confirm(`Are you sure you want to delete this ${collection} entry?`)) return;
+  
+  const masterKey = prompt("Enter Master Secret Key to confirm deletion:");
+  if (masterKey !== "GEC_RAIPUR_ADMIN_2026") {
+    showToast("Invalid Master Key!", "error");
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_URL}/admin/delete-detail`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ collection, id, masterKey })
+    });
+
+    if (response.ok) {
+      showToast("Deleted successfully!", "success");
+      location.reload(); // Refresh to see changes
+    }
+  } catch (err) { showToast("Error connecting to server", "error"); }
+}
+
+// 2. Open Editor (Create/Modify)
+function openFacultyEditor(existingData = null) {
+  document.getElementById('modalTitle').textContent = existingData ? 'Modify Faculty' : 'Add New Faculty';
+  document.getElementById('modalBody').innerHTML = `
+    <div class="form-group">
+      <label>Full Name</label>
+      <input type="text" id="editFacName" class="form-input" value="${existingData?.name || ''}">
+      <label>Department</label>
+      <input type="text" id="editFacDept" class="form-input" value="${existingData?.dept || ''}">
+      <label>Cabin Location</label>
+      <input type="text" id="editFacCabin" class="form-input" value="${existingData?.cabin || ''}">
+      <button class="btn btn-primary btn-full mt-12" onclick="saveFaculty('${existingData?.id || ''}')">Save Details</button>
+    </div>
+  `;
+  openModal();
+}
+
+// Specific wrappers
+function deleteFaculty(id) { 
+  if(confirm("Delete this faculty member?")) adminAction('delete', { collection: 'faculty', id }); 
+}
+
+function addFaculty() {
+  const name = prompt("Enter Faculty Name:");
+  const dept = prompt("Enter Department:");
+  if (name && dept) adminAction('save', { collection: 'faculty', data: { name, dept, available: true } });
+}
 
 /* ─── APP TRANSITION LOGIC ─── */
 function enterApp() {
