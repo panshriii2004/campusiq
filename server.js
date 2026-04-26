@@ -1,101 +1,125 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const admin = require('firebase-admin');
 
 const app = express();
 const PORT = 3000;
 
-// --- GLOBAL DATABASE (In-Memory) ---
-// Declared at the top so all routes can access it
-let users = []; 
+// --- 1. FIREBASE ADMIN SETUP ---
+const serviceAccount = require("./firebase-key.json");
+admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+const db = admin.firestore();
 
-// 1. Middleware
-app.use(cors({
-    origin: ["http://localhost:5501", "https://your-github-username.github.io"],
-    methods: ["GET", "POST"],
-    credentials: true
-})); // Allows cross-origin requests from port 5501
-app.use(express.json()); // Parses incoming JSON data
+// --- 2. MIDDLEWARE ---
+app.use(cors());
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'campusiq')));
 
-// 2. Content Security Policy (CSP)
-// Updated to allow 'data:' for the favicon and local connections
 app.use((req, res, next) => {
-    res.setHeader(
-        "Content-Security-Policy",
-        "default-src 'self'; " +
-        "connect-src 'self' http://localhost:3000; " +
-        "img-src 'self' data:; " + 
-        "script-src 'self' 'unsafe-inline'; " +
-        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-        "font-src 'self' https://fonts.gstatic.com;"
-    );
+    res.setHeader("Content-Security-Policy", "default-src 'self'; connect-src 'self' http://localhost:3000; img-src 'self' data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com;");
     next();
 });
 
-// 3. Static Folder
-// Serves your frontend files from the 'campusiq' folder
-app.use(express.static(path.join(__dirname, 'campusiq')));
+// --- 3. ROUTES ---
 
-// --- ROUTES ---
+// REGISTRATION: Logic for Faculty vs Students
+app.post('/api/register', async (req, res) => {
+  try {
+    const { name, email, role, dept, password } = req.body;
+    
+    // Determine target collection
+    const collectionName = (role === 'faculty' || role === 'professor') ? 'faculty' : 'students';
+    const targetCollection = db.collection(collectionName);
 
-// Registration Route
-app.post('/api/register', (req, res) => {
-    try {
-        const { name, email, role, dept, password } = req.body;
-        
-        // Safety check for existing users
-        const existingUser = users.find(u => u.email === email);
-        if (existingUser) {
-            return res.status(400).json({ message: "User already exists" });
-        }
+    const userCheck = await targetCollection.where('email', '==', email).get();
+    if (!userCheck.empty) return res.status(400).json({ message: `User already exists in ${collectionName}.` });
 
-        // Create new user object - role defaults to 'student' if missing
-        const newUser = { 
-            id: Date.now(), 
-            name, 
-            email, 
-            role: role || 'student', 
-            dept, 
-            password 
-        };
+    const newUser = { 
+      name, 
+      email, 
+      role: role || 'student', 
+      dept, 
+      password, 
+      joinedAt: admin.firestore.FieldValue.serverTimestamp() 
+    };
 
-        users.push(newUser);
-        console.log("✅ User Saved to Memory:", newUser.name, `(${newUser.role})`); 
-        
-        res.status(201).json({ message: "Success", user: newUser });
-    } catch (error) {
-        console.error("Registration Error:", error);
-        res.status(500).json({ message: "Internal Server Error" });
-    }
+    await targetCollection.add(newUser);
+    console.log(`✅ New registration: ${name} added to ${collectionName}`);
+    res.status(201).json({ message: "Success", user: newUser });
+  } catch (error) {
+    console.error("Registration Error:", error);
+    res.status(500).json({ message: "Database Error" });
+  }
 });
 
-// Login Route
-app.post('/api/login', (req, res) => {
-    try {
-        const { email, password } = req.body;
-        console.log("Login attempt for:", email);
+// LOGIN: Updated to strictly use 'admins' plural
+app.post('/api/login', async (req, res) => {
+  try {
+    const { email, password, role } = req.body;
+    
+    // Logic to select the correct collection
+    let collectionName = 'students'; // default
+    if (role === 'admin') collectionName = 'admins';
+    else if (role === 'faculty' || role === 'professor') collectionName = 'faculty';
 
-        // Find user with matching credentials
-        const user = users.find(u => u && u.email === email && u.password === password);
+    console.log(`🔍 Login Request: Searching for [${email}] in collection [${collectionName}]`);
 
-        if (!user) {
-            return res.status(401).json({ message: "Invalid email or password" });
-        }
-
-        console.log("🔑 Login successful for:", user.name);
-        res.json({ message: "Welcome back", user: user });
-
-    } catch (error) {
-        console.error("Login Error:", error);
-        res.status(500).json({ message: "Internal Server Error" });
+    const snapshot = await db.collection(collectionName).where('email', '==', email).limit(1).get();
+    
+    if (snapshot.empty) {
+      console.log(`❌ Result: No account found in ${collectionName}`);
+      return res.status(401).json({ message: `Account not found in ${collectionName} records.` });
     }
+
+    const user = snapshot.docs[0].data();
+    
+    if (user.password !== password) {
+      console.log(`❌ Result: Wrong password for ${email}`);
+      return res.status(401).json({ message: "Invalid password" });
+    }
+
+    console.log(`✅ Result: Successful login for ${user.name}`);
+    res.json({ message: "Welcome back", user: { id: snapshot.docs[0].id, ...user } });
+  } catch (error) {
+    console.error("Login Error:", error);
+    res.status(500).json({ message: "Login Error" });
+  }
 });
 
-// Favicon Helper (Silences 404s)
+// ADMIN CREATION: Private route for adding new admins
+app.post('/api/admin/create', async (req, res) => {
+  try {
+    const { name, email, password, masterKey } = req.body;
+    
+    // Master Key Security
+    if (masterKey !== "GEC_RAIPUR_ADMIN_2026") {
+      return res.status(403).json({ message: "Unauthorized: Incorrect Master Key" });
+    }
+
+    const adminCheck = await db.collection('admins').where('email', '==', email).get();
+    if (!adminCheck.empty) return res.status(400).json({ message: "Admin user already exists." });
+
+    const newAdmin = { 
+      name, 
+      email, 
+      password, 
+      role: 'admin',
+      createdAt: admin.firestore.FieldValue.serverTimestamp() 
+    };
+
+    await db.collection('admins').add(newAdmin);
+    console.log(`👑 New Admin Created: ${name}`);
+    res.status(201).json({ message: "Admin Created Successfully" });
+  } catch (error) { 
+    console.error("Admin Create Error:", error);
+    res.status(500).json({ message: "Error creating admin account" }); 
+  }
+});
+
 app.get('/favicon.ico', (req, res) => res.status(204).end());
 
-// Start Server
 app.listen(PORT, () => {
-    console.log(`🚀 CampusIQ Server running at http://localhost:${PORT}`);
-    console.log(`📂 Serving frontend from: ${path.join(__dirname, 'campusiq')}`);
+    console.log(`🚀 CampusIQ Server Live at http://localhost:${PORT}`);
+    console.log(`📂 Collections: [students], [faculty], [admins]`);
 });

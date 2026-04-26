@@ -1,8 +1,8 @@
 /* ══════════════════════════════════════════════
-   CampusIQ — Page Renderers
-   File: js/pages.js
-   Each function returns an HTML string for a page.
-   ══════════════════════════════════════════════ */
+    CampusIQ — Page Renderers
+    File: js/pages.js
+    Each function returns an HTML string for a page.
+    ══════════════════════════════════════════════ */
 
 /* ─── HELPERS ──────────────────────────────────── */
 function availBadge(val) {
@@ -16,7 +16,7 @@ function openBadge(val) {
     : `<span class="badge badge-red"><span class="dot dot-red"></span>Occupied</span>`;
 }
 function initials(name) {
-  return name.split(' ').filter(w => w).slice(0, 2).map(w => w[0]).join('');
+  return name ? name.split(' ').filter(w => w).slice(0, 2).map(w => w[0]).join('') : '??';
 }
 
 /* ─── DASHBOARD ────────────────────────────────── */
@@ -129,7 +129,7 @@ function filterFacultyStatus(status) {
   const grid = document.getElementById('facultyGrid');
   if (!grid) return;
   const list = status === 'available' ? FACULTY_DB.filter(f => f.available)
-             : status === 'busy'      ? FACULTY_DB.filter(f => !f.available)
+             : status === 'busy'       ? FACULTY_DB.filter(f => !f.available)
              : FACULTY_DB;
   renderFacultyCards(list, grid);
 }
@@ -271,18 +271,6 @@ function pageNavigation() {
   </div>`;
 }
 
-function calcRoute() {
-  const from   = document.getElementById('navFrom')?.value;
-  const to     = document.getElementById('navTo')?.value;
-  if (!from || !to) return;
-  if (from === to) { showToast('Start and end are the same location!','error'); return; }
-  const path   = dijkstra(from, to);
-  if (!path)   { showToast('No route found between selected points.','error'); return; }
-  document.getElementById('mapContainer').innerHTML = buildMapSVG(path);
-  document.getElementById('navSteps').innerHTML     = buildStepsHTML(path);
-  showToast(`Route calculated: ${path.length} stops`, 'success');
-}
-
 /* ─── CHATBOT PAGE ─────────────────────────────── */
 function pageChatbot() {
   const quickPrompts = ["Where is the HOD?","Computer Lab location","Is Dr. Sharma available?","Navigate to library","Seminar Hall 2","Emergency help"];
@@ -420,17 +408,6 @@ function pageEmergency() {
   </div>`;
 }
 
-function sendAlert(type) {
-  document.getElementById('alertSentBox').classList.remove('hidden');
-  document.getElementById('alertControls').classList.add('hidden');
-  document.getElementById('alertTypeLabel').textContent = `Type: ${type}`;
-  showToast(`🚨 ${type} alert sent to campus security!`, 'error');
-}
-function resetAlert() {
-  document.getElementById('alertSentBox').classList.add('hidden');
-  document.getElementById('alertControls').classList.remove('hidden');
-}
-
 /* ─── FACULTY DASHBOARD ────────────────────────── */
 function pageFacultyDash() {
   const f = FACULTY_DB[0]; // In real app, match logged-in user
@@ -469,17 +446,10 @@ function pageFacultyDash() {
               ? `<span class="badge badge-green" style="font-size:13px;padding:8px 16px">✅ Currently AVAILABLE</span>`
               : `<span class="badge badge-red"   style="font-size:13px;padding:8px 16px">🔴 Currently BUSY/AWAY</span>`}
           </div>
-          <div style="padding:8px 0">
-            <div class="form-label">Cabin Location</div>
-            <div class="flex items-center gap-8">
-              <span class="text-sm">📍 ${f.cabin}</span>
-              <button class="btn btn-ghost btn-sm ms-auto" onclick="showToast('Cabin location updated!','success')">✏️ Edit</button>
-            </div>
-          </div>
         </div>
         <div class="card">
           <div class="card-title">📩 Student Queries <span class="badge badge-warn" style="font-size:11px">3 Pending</span></div>
-          ${["Where is your cabin?","When is your next free slot?","Can I submit assignment today?"].map(q => `
+          ${["Where is your cabin?","When is your next free slot?"].map(q => `
             <div class="activity-item">
               <div class="activity-icon">🎓</div>
               <div>
@@ -494,22 +464,6 @@ function pageFacultyDash() {
         <div class="card mb-16" style="margin-bottom:16px">
           <div class="card-title">📅 My Schedule</div>
           ${schedHTML}
-        </div>
-        <div class="card">
-          <div class="card-title">📋 Compliance Form</div>
-          <div class="form-group">
-            <label class="form-label">Academic Year</label>
-            <select class="form-input"><option>2024–25</option><option>2025–26</option></select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Subjects Assigned</label>
-            <input class="form-input" value="${f.subjects.join(', ')}" readonly/>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Remarks</label>
-            <textarea class="form-input" placeholder="Optional remarks…"></textarea>
-          </div>
-          <button class="btn btn-primary" onclick="showToast('Compliance form submitted!','success')">Submit Compliance</button>
         </div>
       </div>
     </div>
@@ -530,6 +484,7 @@ function pageAdmin() {
       <button class="tab-btn" onclick="switchAdminTab('students',this)">Students</button>
       <button class="tab-btn" onclick="switchAdminTab('resources',this)">Resources</button>
       <button class="tab-btn" onclick="switchAdminTab('analytics',this)">Analytics</button>
+      <button class="tab-btn" onclick="switchAdminTab('security',this)">🔐 Security</button>
     </div>
     <div id="adminTabContent">${adminOverview()}</div>
   </div>`;
@@ -539,13 +494,20 @@ function switchAdminTab(tab, btn) {
   document.querySelectorAll('#adminTabs .tab-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   const content = document.getElementById('adminTabContent');
-  const map = { overview:adminOverview, faculty:adminFaculty, students:adminStudents, resources:adminResources, analytics:adminAnalytics };
+  const map = { 
+    overview: adminOverview, 
+    faculty: adminFaculty, 
+    students: adminStudents, 
+    resources: adminResources, 
+    analytics: adminAnalytics,
+    security: adminSecurity 
+  };
   content.innerHTML = map[tab] ? map[tab]() : '';
   content.classList.add('fade-in');
 }
 
 function adminOverview() {
-  const sysFeatures = [["AI Chatbot","Enabled"],["Voice Assistant","Enabled"],["Emergency Alerts","Enabled"],["Auto-Navigation","Enabled"],["Compliance Reminders","Disabled"],["QR Code Navigation","Enabled"]];
+  const sysFeatures = [["AI Chatbot","Enabled"],["Voice Assistant","Enabled"],["Emergency Alerts","Enabled"],["Auto-Navigation","Enabled"],["QR Code Navigation","Enabled"]];
   return `
   <div class="fade-in">
     <div class="stats-row">
@@ -553,14 +515,13 @@ function adminOverview() {
       <div class="stat-card"><div class="stat-num c-green">1,247</div><div class="stat-label">Students</div></div>
       <div class="stat-card"><div class="stat-num c-warn">${RESOURCES_DB.length}</div><div class="stat-label">Resources</div></div>
       <div class="stat-card"><div class="stat-num c-purple">5</div><div class="stat-label">Buildings</div></div>
-      <div class="stat-card"><div class="stat-num c-green">99.9%</div><div class="stat-label">Uptime</div></div>
     </div>
     <div class="grid-2">
       <div class="card">
         <div class="card-title">🏗 Campus Management</div>
-        ${["Upload Campus Map","Add New Building / Block","Configure Navigation Nodes","Set Emergency Protocols","Manage QR Code Markers","Add Department / Lab"].map((a,i) =>
+        ${["Upload Campus Map","Add New Block","Configure Nodes","Set Emergency Protocols"].map((a,i) =>
           `<button class="btn btn-ghost w-full" style="justify-content:flex-start;margin-bottom:8px" onclick="showToast('Opening: ${a}','info')">
-            ${["🗺","🏢","📍","🚨","📱","🧪"][i]} ${a}
+            ${["🗺","🏢","📍","🚨"][i]} ${a}
           </button>`).join('')}
       </div>
       <div class="card">
@@ -586,12 +547,12 @@ function adminFaculty() {
             <td><span class="badge badge-blue">${f.id}</span></td>
             <td><strong>${f.name}</strong></td>
             <td>${f.dept}</td>
-            <td><span class="text-xs text2">📍 ${f.cabin}</span></td>
+            <td>📍 ${f.cabin}</td>
             <td>${availBadge(f.available)}</td>
             <td>
               <div class="flex gap-8">
-                <button class="btn btn-ghost btn-sm" onclick="showToast('Edit modal for ${f.name}','info')">✏️ Edit</button>
-                <button class="btn btn-danger btn-sm" onclick="showToast('Removed ${f.name}','error')">🗑 Remove</button>
+                <button class="btn btn-ghost btn-sm" onclick="showToast('Edit ${f.name}','info')">✏️</button>
+                <button class="btn btn-danger btn-sm" onclick="showToast('Removed','error')">🗑</button>
               </div>
             </td>
           </tr>`).join('')}
@@ -603,21 +564,15 @@ function adminFaculty() {
 function adminStudents() {
   return `
   <div class="fade-in">
-    <div class="stats-row" style="margin-bottom:16px">
-      <div class="stat-card"><div class="stat-num c-accent">1,247</div><div class="stat-label">Total</div></div>
-      <div class="stat-card"><div class="stat-num c-green">1,156</div><div class="stat-label">Active</div></div>
-      <div class="stat-card"><div class="stat-num c-warn">91</div><div class="stat-label">Inactive</div></div>
-    </div>
     <div class="table-container">
       <table class="data-table">
-        <thead><tr><th>ID</th><th>Name</th><th>Department</th><th>Queries</th><th>Status</th></tr></thead>
+        <thead><tr><th>ID</th><th>Name</th><th>Department</th><th>Status</th></tr></thead>
         <tbody>
           ${STUDENTS_DB.map(s => `
             <tr>
               <td><span class="badge badge-purple">${s.id}</span></td>
               <td><strong>${s.name}</strong></td>
               <td>${s.dept}</td>
-              <td><span class="badge badge-blue">${s.queries} queries</span></td>
               <td>${s.status==='Active'?'<span class="badge badge-green">Active</span>':'<span class="badge badge-red">Inactive</span>'}</td>
             </tr>`).join('')}
         </tbody>
@@ -630,14 +585,13 @@ function adminResources() {
   return `
   <div class="fade-in table-container">
     <table class="data-table">
-      <thead><tr><th>ID</th><th>Name</th><th>Type</th><th>Location</th><th>Capacity</th><th>Status</th></tr></thead>
+      <thead><tr><th>ID</th><th>Name</th><th>Type</th><th>Capacity</th><th>Status</th></tr></thead>
       <tbody>
         ${RESOURCES_DB.map(r => `
           <tr>
             <td><span class="badge badge-blue">${r.id}</span></td>
             <td>${r.icon} <strong>${r.name}</strong></td>
             <td>${r.type}</td>
-            <td>${r.building}, Fl.${r.floor}</td>
             <td>${r.capacity}</td>
             <td>${openBadge(r.available)}</td>
           </tr>`).join('')}
@@ -647,36 +601,55 @@ function adminResources() {
 }
 
 function adminAnalytics() {
-  const topRes = [["Computer Lab 1","34%"],["Central Library","28%"],["Seminar Hall 1","18%"],["Physics Lab","12%"],["Canteen","8%"]];
-  const topFac = FACULTY_DB.map((f,i) => [f.name, `${(6-i)*12}%`]);
+  const topRes = [["Computer Lab 1","34%"],["Central Library","28%"]];
   return `
   <div class="fade-in">
-    <div class="stats-row">
-      <div class="stat-card"><div class="stat-num c-accent">2,341</div><div class="stat-label">Chatbot Queries Today</div></div>
-      <div class="stat-card"><div class="stat-num c-green">847</div><div class="stat-label">Navigation Requests</div></div>
-      <div class="stat-card"><div class="stat-num c-warn">156</div><div class="stat-label">Faculty Lookups</div></div>
-      <div class="stat-card"><div class="stat-num c-purple">3</div><div class="stat-label">Emergency Alerts</div></div>
-    </div>
     <div class="grid-2">
       <div class="card">
-        <div class="card-title">📊 Top Searched Resources</div>
+        <div class="card-title">📊 Top Resources</div>
         ${topRes.map(([n,p]) => `
           <div style="margin-bottom:14px">
-            <div class="flex items-center gap-8 mb-8" style="margin-bottom:6px">
+            <div class="flex items-center gap-8 mb-8">
               <span class="text-sm">${n}</span><span class="ms-auto text-xs text2">${p}</span>
             </div>
             <div class="progress-bar"><div class="progress-fill" style="width:${p};background:var(--accent)"></div></div>
           </div>`).join('')}
       </div>
-      <div class="card">
-        <div class="card-title">📈 Top Faculty Queries</div>
-        ${topFac.map(([n,p]) => `
-          <div style="margin-bottom:14px">
-            <div class="flex items-center gap-8 mb-8" style="margin-bottom:6px">
-              <span class="text-sm">${n}</span><span class="ms-auto text-xs text2">${p}</span>
-            </div>
-            <div class="progress-bar"><div class="progress-fill" style="width:${p};background:var(--accent2)"></div></div>
-          </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+/* ─── SECURITY / ADMIN PROVISIONING ─────────── */
+function adminSecurity() {
+  return `
+  <div class="fade-in">
+    <div class="admin-panel">
+      <div class="card mb-24">
+        <div class="card-title">🔐 Admin Provisioning</div>
+        <p class="text2 text-sm mb-16" style="margin-bottom:16px">
+          Create new administrative accounts. This action requires the <strong>Master Secret Key</strong>.
+        </p>
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input type="text" id="newAdminName" class="form-input" placeholder="e.g. Pankaj Shrivas">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Admin Email</label>
+          <input type="email" id="newAdminEmail" class="form-input" placeholder="admin@campusiq.edu">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Set Password</label>
+          <input type="password" id="newAdminPass" class="form-input" placeholder="••••••••">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Master Secret Key</label>
+          <input type="password" id="masterKey" class="form-input" placeholder="Enter System Master Key">
+        </div>
+        <button class="btn btn-primary btn-full mt-12" onclick="createNewAdmin()">Create Admin Account</button>
+      </div>
+      
+      <div class="callout warn">
+        <strong>Security Note:</strong> New admins will have full access to campus configurations, faculty data, and student records.
       </div>
     </div>
   </div>`;
@@ -696,13 +669,11 @@ function openFacultyModal(id) {
       </div>
       <div class="ms-auto">${availBadge(f.available)}</div>
     </div>
-    ${[['📍 Cabin',f.cabin],['📧 Email',f.email],['📞 Phone',f.phone],
-       ['📚 Subjects',f.subjects.join(', ')],['📅 Schedule',f.schedule.join(' · ')],
-       ['ℹ️ Bio',f.bio]]
+    ${[['📍 Cabin',f.cabin],['📧 Email',f.email],['📚 Subjects',f.subjects.join(', ')]]
       .map(([k,v]) => `<div class="info-row"><span class="info-label">${k}</span><span class="info-value">${v}</span></div>`)
       .join('')}
     <div style="margin-top:16px;display:flex;gap:10px">
-      <button class="btn btn-primary" onclick='closeModal();openNavModal("entrance","${f.building}","${f.name}&rsquo;s Cabin")'>🗺 Navigate to Cabin</button>
+      <button class="btn btn-primary" onclick='closeModal();openNavModal("entrance","${f.building}","${f.name}&rsquo;s Cabin")'>🗺 Navigate</button>
       <button class="btn btn-ghost" onclick="closeModal()">Close</button>
     </div>`;
   openModal();
@@ -717,16 +688,11 @@ function openResourceModal(id) {
     <div style="font-size:18px;font-weight:700;margin-bottom:6px">${r.name}</div>
     ${openBadge(r.available)}
     <div style="margin-top:16px">
-      ${[['📍 Location',`${r.building}, Floor ${r.floor}, Room ${r.room}`],
-         ['👥 Capacity',`${r.capacity} persons`],
-         ['📝 Description',r.desc]]
+      ${[['📍 Location',`${r.building}, Room ${r.room}`],['👥 Capacity',`${r.capacity} persons`]]
         .map(([k,v]) => `<div class="info-row"><span class="info-label">${k}</span><span class="info-value">${v}</span></div>`)
         .join('')}
     </div>
-    <div style="margin-top:16px;display:flex;gap:10px">
-      <button class="btn btn-primary" onclick='closeModal();openNavModal("entrance","mainBlock","${r.name}")'>🗺 Navigate</button>
-      <button class="btn btn-ghost" onclick="closeModal()">Close</button>
-    </div>`;
+    <button class="btn btn-ghost" style="margin-top:16px" onclick="closeModal()">Close</button>`;
   openModal();
 }
 
@@ -736,7 +702,7 @@ function openNavModal(from, to, label) {
   document.getElementById('modalBody').innerHTML = `
     <div class="callout" style="margin-bottom:14px">Navigating to: <strong>${label}</strong></div>
     ${buildMapSVG(path, 260)}
-    <div style="margin-top:12px">${path ? buildStepsHTML(path) : '<p class="text2 text-sm">Route unavailable.</p>'}</div>
+    <div style="margin-top:12px">${path ? buildStepsHTML(path) : 'Route unavailable.'}</div>
     <button class="btn btn-ghost" style="margin-top:14px" onclick="closeModal()">Close</button>`;
   openModal();
 }
