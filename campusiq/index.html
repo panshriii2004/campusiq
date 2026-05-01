@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="css/animations.css">
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   
+  <!-- IMPORTANT: Load navigation logic BEFORE renderers -->
   <script src="js/data.js" defer></script>
   <script src="js/navigation.js" defer></script>
   <script src="js/pages.js" defer></script>
@@ -27,10 +28,10 @@
       
       <div class="tabs mb-24" style="width: 100%;">
         <button class="tab-btn active" id="btnShowLogin" onclick="toggleAuthMode('login')">Sign In</button>
-        
         <button class="tab-btn" id="btnShowSignup" onclick="toggleAuthMode('signup')">Create Account</button>
       </div>
 
+      <!-- Sign In Form -->
       <form id="loginFields" onsubmit="event.preventDefault(); doLogin();">
         <h2 class="login-title">Welcome Back</h2>
         <p class="login-sub">Smart Campus Navigation System</p>
@@ -50,17 +51,16 @@
           <input class="form-input" id="loginPassword" type="password" required autocomplete="current-password" placeholder="••••••••"/>
         </div>
         <button type="submit" class="btn btn-primary btn-full">Sign In → Enter Portal</button>
+        
+        <!-- Attendance Button Moved INSIDE the form for styling consistency -->
+        <button type="button" class="btn btn-secondary btn-full" 
+                onclick="window.open('https://smart-attendance-app-phi.vercel.app/login', '_blank')"
+                style="margin-top: 12px;">
+            📝 Take Attendance
+        </button>
       </form>
 
-    
-
-  <button type="button" class="btn btn-secondary btn-full" 
-          onclick="window.open('https://smart-attendance-app-phi.vercel.app/login', '_blank')"
-          style="margin-top: 12px;">
-      📝 Take Attendance
-  </button>
-</form>
-
+      <!-- Sign Up Form -->
       <form id="signupFields" class="hidden" onsubmit="event.preventDefault(); doRegister();">
         <h2 class="login-title">Join CampusIQ</h2>
         <p class="login-sub">Register to access smart campus features</p>
@@ -100,6 +100,7 @@
     </div>
   </div>
 
+  <!-- Main App Content -->
   <div id="appShell" class="app hidden">
     <nav class="sidebar" id="sidebar">
       <div class="sidebar-logo"><span class="logo-icon">⬡</span><span class="logo-text">CampusIQ</span></div>
@@ -113,6 +114,7 @@
     <main class="main-content" id="mainContent"></main>
   </div>
 
+  <!-- Modals and Toasts -->
   <div id="modalOverlay" class="modal-overlay hidden" onclick="closeModal()">
     <div class="modal" id="modalBox" onclick="event.stopPropagation()">
       <div class="modal-header">
